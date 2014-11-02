@@ -1,4 +1,8 @@
 #!/usr/bin/python
+# -*- encoding: utf8 -*-
+
+# © 2014 Joachim Breitner
+# License: MIT (see LICENSE)
 
 import mechanize
 import cookielib
