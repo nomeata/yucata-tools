@@ -18,6 +18,7 @@ except IOError:
     pass
 
 br = mechanize.Browser()
+br.addheaders = [('User-agent', 'yucata-tools (https://github.com/nomeata/yucata-tools)')]
 br.set_cookiejar(cookiejar)
 
 

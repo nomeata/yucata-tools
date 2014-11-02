@@ -7,7 +7,8 @@ heavy user of the great and free online boardgame platform [yucata.de].
 Use at your own risk!
 
 These tools do not use official APIs, so they are likely to break regularly
-when the server changes.
+when the server changes. Also, use them at a reasonable frequency, in order to
+not have the server admins lock us out.
 
 Features
 --------
