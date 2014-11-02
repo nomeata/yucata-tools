@@ -39,6 +39,7 @@ if config.has_option('Login', 'username'):
 
 
 def get_cookie():
+    global login
     prompt = "Login [%s]: " % login if login else "Login: "
     thelogin = raw_input(prompt)
     if thelogin:
