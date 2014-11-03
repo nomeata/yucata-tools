@@ -17,7 +17,7 @@ import webbrowser
 cookiefile = os.path.join(xdg.BaseDirectory.save_data_path("yucata-tools"), "cookies")
 cookiejar =cookielib.LWPCookieJar(cookiefile)
 try:
-    cookiejar.load(ignore_discard=True)
+    cookiejar.load()
 except IOError:
     pass
 
@@ -53,8 +53,9 @@ def get_cookie():
     br.select_form('aspnetForm')
     br.form["ctl00$ctl07$edtLogin"] = login
     br.form["ctl00$ctl07$edtPassword"] = password
+    br.form["ctl00$ctl07$cbxCookie"] = ('on',)
     br.submit(name="ctl00$ctl07$btnLogin", label="Anmelden")
-    cookiejar.save(ignore_discard=True)
+    cookiejar.save()
 
 def try_get_games():
     try:
