@@ -4,7 +4,8 @@
 # © 2014 Joachim Breitner
 # License: MIT (see LICENSE)
 
-import mechanize
+import urllib
+import urllib2
 import cookielib
 import xdg.BaseDirectory
 import os.path
@@ -12,6 +13,7 @@ import ConfigParser
 import getpass
 import json
 import webbrowser
+import re
 
 # setup
 cookiefile = os.path.join(xdg.BaseDirectory.save_data_path("yucata-tools"), "cookies")
@@ -21,9 +23,8 @@ try:
 except IOError:
     pass
 
-br = mechanize.Browser()
+br = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookiejar))
 br.addheaders = [('User-agent', 'yucata-tools (https://github.com/nomeata/yucata-tools)')]
-br.set_cookiejar(cookiejar)
 
 
 configfile = os.path.join(xdg.BaseDirectory.save_config_path("yucata-tools"), "config.ini")
@@ -49,19 +50,36 @@ def get_cookie():
     config.set('Login', 'username', login)
     config.write(file(configfile, 'wb'))
 
-    br.open("http://www.yucata.de/de")
-    br.select_form('aspnetForm')
-    br.form["ctl00$ctl07$edtLogin"] = login
-    br.form["ctl00$ctl07$edtPassword"] = password
-    br.form["ctl00$ctl07$cbxCookie"] = ('on',)
-    br.submit(name="ctl00$ctl07$btnLogin", label="Anmelden")
+    page = br.open("http://www.yucata.de/de").read()
+
+    viewstate_re = re.compile(r'id="__VIEWSTATE" value="([^"]+)"')
+    m = viewstate_re.search(page)
+    if not m:
+        raise Exception("No __VIEWSTATE found")
+    viewstate = m.group(1)
+
+    viewstate_gen_re = re.compile(r'id="__VIEWSTATEGENERATOR" value="([^"]+)"')
+    m = viewstate_gen_re.search(page)
+    if not m:
+        raise Exception("No __VIEWSTATEGENERATOR found")
+    viewstate_gen = m.group(1)
+    
+    query = urllib.urlencode({
+            "ctl00$ctl07$edtLogin": login,
+            "ctl00$ctl07$edtPassword": password,
+            "ctl00$ctl07$cbxCookie": 'on',
+            "__VIEWSTATE": viewstate,
+            "__VIEWSTATEGENERATOR": viewstate_gen,
+            "ctl00$ctl07$btnLogin": "Anmelden",
+            })
+    page = br.open("http://www.yucata.de/de",query).read()
     cookiejar.save()
 
 def try_get_games():
     try:
         resp = br.open("http://www.yucata.de/Services/YucataService.svc/GetCurrentGames", data="")
         return resp.read()
-    except mechanize.HTTPError, e:
+    except urllib2.HTTPError, e:
         if int(e.code) == 500:
             return None
         else:
