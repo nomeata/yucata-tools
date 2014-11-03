@@ -52,26 +52,21 @@ def get_cookie():
 
     page = br.open("http://www.yucata.de/de").read()
 
-    viewstate_re = re.compile(r'id="__VIEWSTATE" value="([^"]+)"')
-    m = viewstate_re.search(page)
-    if not m:
-        raise Exception("No __VIEWSTATE found")
-    viewstate = m.group(1)
+    data ={
+        "ctl00$ctl07$edtLogin": login,
+        "ctl00$ctl07$edtPassword": password,
+        "ctl00$ctl07$cbxCookie": 'on',
+        "ctl00$ctl07$btnLogin": "Anmelden",
+        }
 
-    viewstate_gen_re = re.compile(r'id="__VIEWSTATEGENERATOR" value="([^"]+)"')
-    m = viewstate_gen_re.search(page)
-    if not m:
-        raise Exception("No __VIEWSTATEGENERATOR found")
-    viewstate_gen = m.group(1)
-    
-    query = urllib.urlencode({
-            "ctl00$ctl07$edtLogin": login,
-            "ctl00$ctl07$edtPassword": password,
-            "ctl00$ctl07$cbxCookie": 'on',
-            "__VIEWSTATE": viewstate,
-            "__VIEWSTATEGENERATOR": viewstate_gen,
-            "ctl00$ctl07$btnLogin": "Anmelden",
-            })
+    for name in ('__VIEWSTATE', '__VIEWSTATEGENERATOR'):
+        field_re = re.compile(r'id="%s" value="([^"]+)"' % name)
+        m = field_re.search(page)
+        if not m:
+            raise Exception("No %s found" % name)
+        data[name] = m.group(1)
+
+    query = urllib.urlencode(data)
     page = br.open("http://www.yucata.de/de",query).read()
     cookiejar.save()
 
@@ -79,7 +74,7 @@ def try_get_games():
     try:
         resp = br.open("http://www.yucata.de/Services/YucataService.svc/GetCurrentGames", data="")
         return resp.read()
-    except urllib2.HTTPError, e:
+    except urllib2.HTTPError as e:
         if int(e.code) == 500:
             return None
         else:
@@ -88,11 +83,11 @@ def try_get_games():
 def get_games():
     games = try_get_games()
     if games is None:
-        print "Cannot fetch games. Trying to log in first."
+        print ("Cannot fetch games. Trying to log in first.")
         get_cookie()
         games = try_get_games()
     if games is None:
-        print "Sorry, cannot fetch games"
+        print ("Sorry, cannot fetch games")
         return
 
     data = json.loads(games)
@@ -112,11 +107,11 @@ def get_games():
         if g["ID"] == next_game_id:
             next_game = g
 
-    print "%d games are running, you can move at %d games" % (len(games), len(games_on_turn))
+    print("%d games are running, you can move at %d games" % (len(games), len(games_on_turn)))
     if next_game:
-        print "You now have to move at a game of %s." % next_game["GameName"]
+        print("You now have to move at a game of %s." % next_game["GameName"])
         url = "http://www.yucata.de/de/Game/%d" % next_game_id
-        print "Opening %s..." % url
+        print("Opening %s..." % url)
         webbrowser.open(url)
 
 get_games()
