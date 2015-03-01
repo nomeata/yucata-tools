@@ -109,7 +109,7 @@ def get_games():
 
     print("%d games are running, you can move at %d games" % (len(games), len(games_on_turn)))
     if next_game:
-        print("You now have to move at a game of %s." % next_game["GameName"])
+        print(u"You now have to move at a game of %s." % next_game["GameName"])
         url = "http://www.yucata.de/de/Game/%d" % next_game_id
         print("Opening %s..." % url)
         webbrowser.open(url)
