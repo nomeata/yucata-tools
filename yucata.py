@@ -14,6 +14,7 @@ import getpass
 import json
 import webbrowser
 import re
+import HTMLParser
 
 import sys, codecs, locale
 sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout);
@@ -33,6 +34,8 @@ br.addheaders = [('User-agent', 'yucata-tools (https://github.com/nomeata/yucata
 configfile = os.path.join(xdg.BaseDirectory.save_config_path("yucata-tools"), "config.ini")
 config = ConfigParser.RawConfigParser()
 config.read(configfile)
+
+html_parser = HTMLParser.HTMLParser()
 
 if not config.has_section('Login'):
     config.add_section('Login')
@@ -82,7 +85,7 @@ def try_get_games():
             return None
         else:
             raise
-        
+
 def get_games():
     games = try_get_games()
     if games is None:
@@ -94,7 +97,7 @@ def get_games():
         return
 
     data = json.loads(games)
-    #print json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
+    #print(json.dumps(data, sort_keys=True, indent=4, separators=(',', ': ')))
 
     games = data["d"]["Games"]
     games_on_turn = []
@@ -112,7 +115,8 @@ def get_games():
 
     print("%d games are running, you can move at %d games" % (len(games), len(games_on_turn)))
     if next_game:
-        print(u"You now have to move at a game of %s." % next_game["GameName"])
+        game_name = html_parser.unescape(next_game["GameName"])
+        print(u"You now have to move at a game of %s." % game_name)
         url = "http://www.yucata.de/de/Game/%d" % next_game_id
         print("Opening %s..." % url)
         webbrowser.open(url)
