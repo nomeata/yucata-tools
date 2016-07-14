@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 # -*- encoding: utf8 -*-
 
 # © 2014 Joachim Breitner
